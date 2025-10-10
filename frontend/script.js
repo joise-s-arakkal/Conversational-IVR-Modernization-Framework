@@ -1,7 +1,7 @@
 // IVR System Frontend JavaScript
 
 let currentSessionId = generateSessionId();
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://conversational-ivr-modernization-fr.vercel.app/';
 
 // Session Management
 function generateSessionId() {
