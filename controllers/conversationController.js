@@ -38,7 +38,7 @@ exports.handleConversation = async (req, res) => {
     }
 
     let response;
-    const serviceUrl = `http://localhost:3000/${intentResult.service}/process`;
+    const serviceUrl = `https://conversational-ivr-modernization-fr.vercel.app/${intentResult.service}/process`;
     
     console.log(`Calling service: ${serviceUrl} with digit: ${intentResult.digit}`);
     
