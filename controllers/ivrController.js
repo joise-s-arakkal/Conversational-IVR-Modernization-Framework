@@ -26,12 +26,12 @@ exports.handleIVRRequest = async (req, res) => {
     let response;
 
     if (acsDigits.includes(digit)) {
-      response = await axios.post("http://localhost:3000/acs/process", {
+      response = await axios.post("https://conversational-ivr-modernization-fr.vercel.app/acs/process", {
         sessionId,
         digit
       });
     } else if (bapDigits.includes(digit)) {
-      response = await axios.post("http://localhost:3000/bap/process", {
+      response = await axios.post("https://conversational-ivr-modernization-fr.vercel.app/bap/process", {
         sessionId,
         digit
       });
