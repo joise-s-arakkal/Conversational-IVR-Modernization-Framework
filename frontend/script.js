@@ -58,41 +58,39 @@ function addMessage(sender, text) {
   transcriptBox.scrollTop = transcriptBox.scrollHeight;
 }
 
-// ====== Simulated IVR Responses ======
-function getIVRResponse(input) {
-  // If input is long text, use keywords; otherwise match digits
+// ====== Updated IVR Response Engine (API-based) ======
+async function getIVRResponse(input) {
   const lower = (input || "").toString().trim().toLowerCase();
+  const sessionId = "abc123"; // TODO: replace or generate dynamically if needed
 
-  // numeric keypad mappings
-  const digitResponses = {
-    "1": "Your current balance is ₹25,460.78.",
-    "2": "Connecting you to a customer support agent.",
-    "3": "Your last statement was generated on October 1st.",
-    "4": "Your card has been blocked. A new one will be issued shortly.",
-    "5": "Your card is now activated and ready for use.",
-    "6": "Bill payment processed successfully.",
-    "7": "Please visit our website to update your information.",
-    "8": "Your loan application is under review.",
-    "9": "We’ve detected no fraudulent activity recently.",
-    "0": "Your e-statement has been sent to your registered email.",
-    "*": "Special options menu.",
-    "#": "End of input."
-  };
-  if (digitResponses[lower]) return digitResponses[lower];
+  // If input is numeric or keypad symbol, treat as DTMF request
+  const isDigit = /^[0-9*#]$/.test(lower);
+  const url = isDigit
+    ? "https://conversational-ivr-modernization-fr.vercel.app/ivr/request"
+    : "https://conversational-ivr-modernization-fr.vercel.app/ivr/conversation";
 
-  // handle natural language keywords
-  if (lower.includes("balance")) return digitResponses["1"];
-  if (lower.includes("agent") || lower.includes("representative") || lower.includes("support")) return digitResponses["2"];
-  if (lower.includes("statement") || lower.includes("last transaction") || lower.includes("last trans")) return digitResponses["3"];
-  if (lower.includes("lost") || lower.includes("blocked") || lower.includes("lost card")) return digitResponses["4"];
-  if (lower.includes("activate") || lower.includes("activate card")) return digitResponses["5"];
-  if (lower.includes("pay") || lower.includes("payment") || lower.includes("bill")) return digitResponses["6"];
-  if (lower.includes("update") || lower.includes("change details")) return digitResponses["7"];
-  if (lower.includes("loan") || lower.includes("emi")) return digitResponses["8"];
-  if (lower.includes("fraud") || lower.includes("fraudulent")) return digitResponses["9"];
-  if (lower === "") return "I didn't catch anything — please say that again or press a digit.";
-  return "Sorry, I didn't understand that. Please press a number from the keypad or try saying 'Balance' or 'Agent'.";
+  const payload = isDigit
+    ? { sessionId, digit: lower }
+    : { sessionId, query: input };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    // expect either {response: "..."} or fallback text
+    return data.response || "Sorry, no response from IVR system.";
+  } catch (err) {
+    console.error("IVR API error:", err);
+    return "⚠️ Unable to reach IVR server. Please try again later.";
+  }
 }
+
 
 // ====== Text-to-Speech Setup ======
 const synth = window.speechSynthesis;
@@ -178,11 +176,11 @@ document.querySelectorAll(".key").forEach(key => {
     const text = key.textContent.trim();
     const value = text[0];
     addMessage("user", `Pressed ${value}`);
-    const response = getIVRResponse(value);
-    setTimeout(() => {
+    (async () => {
+      const response = await getIVRResponse(value);
       addMessage("ivr", response);
       speakText(response);
-    }, 400);
+    })();
   });
 });
 
@@ -215,9 +213,12 @@ function setupRecognition() {
     addMessage("user", transcript);
 
     // generate & show response
-    const responseText = getIVRResponse(transcript);
-    addMessage("ivr", responseText);
-    speakText(responseText);
+    (async () => {
+      const responseText = await getIVRResponse(transcript);
+      addMessage("ivr", responseText);
+      speakText(responseText);
+    })();
+
 
     // UI updates
     setTimeout(() => updateVoiceStatus("✅ Voice command processed", "success"), 600);
