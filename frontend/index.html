@@ -1,73 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IVR System | Team B</title>
-
-  <!-- Bootstrap & Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="container ivr-container text-center p-4">
-    <div class="ivr-card mx-auto p-4 rounded-4 shadow-lg">
-      <div class="header mb-4">
-        <h1 class="fw-bold"><i class="bi bi-bank2 text-primary"></i> IVR System</h1>
-        <p class="text-muted">Interactive Voice Response — <b>Team B</b></p>
-      </div>
-
-      <!-- Display Section -->
-      <div class="display p-3 mb-4 rounded-4 bg-light border position-relative">
-        <div class="d-flex justify-content-between small text-muted mb-2">
-          <span id="sessionId">Session: Loading...</span>
-          <span id="status" class="badge bg-primary">Ready</span>
-        </div>
-        <div id="response" class="text-secondary fst-italic">
-          Press 1 for balance. 2 for recharge. 3 for last transaction. 4 for loan info. 5 for an agent. 6 to update details. 7 to cancel. 9 to repeat this menu.
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conversational IVR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="phone">
+      <div class="status-bar glass">
+        <span id="time">22:14</span>
+        <div>
+          <i class="fas fa-signal"></i>
+          <i class="fas fa-wifi"></i>
+          <i class="fas fa-battery-full"></i>
         </div>
       </div>
 
-      <!-- Dialpad -->
-      <div class="dialpad grid gap-3 mb-4">
-        <div class="row g-3">
-          <div class="col-4"><button class="btn dial-button" data-digit="1"><div>1</div><small>Balance</small></button></div>
-          <div class="col-4"><button class="btn dial-button" data-digit="2"><div>2</div><small>Recharge</small></button></div>
-          <div class="col-4"><button class="btn dial-button" data-digit="3"><div>3</div><small>Last Txn</small></button></div>
+      <div id="call-screen" class="screen active fade-in">
+        <div class="caller-info">
+          <img
+            src="call-bot.jpeg"
+            alt="IVR Robot Assistant"
+            class="robot-icon-img"
+          />
+          <p>On call with</p>
+          <h1>IVR System</h1>
+          <span id="timer">00:00</span>
+        </div>
 
-          <div class="col-4"><button class="btn dial-button" data-digit="4"><div>4</div><small>Loan Info</small></button></div>
-          <div class="col-4"><button class="btn dial-button" data-digit="5"><div>5</div><small>Agent</small></button></div>
-          <div class="col-4"><button class="btn dial-button" data-digit="6"><div>6</div><small>Update</small></button></div>
-
-          <div class="col-4"><button class="btn dial-button" data-digit="7"><div>7</div><small>Cancel</small></button></div>
-          <div class="col-4"><button class="btn dial-button" data-digit="8"><div>8</div><small>---</small></button></div>
-          <div class="col-4"><button class="btn dial-button" data-digit="9"><div>9</div><small>Menu</small></button></div>
+        <div class="call-controls glass">
+          <button class="control-btn" aria-label="Mute">
+            <i class="fas fa-microphone-slash"></i><span>Mute</span>
+          </button>
+          <button id="keypad-toggle-btn" class="control-btn" aria-label="Keypad">
+            <i class="fas fa-th"></i><span>Keypad</span>
+          </button>
+          <button class="control-btn" aria-label="Speaker">
+            <i class="fas fa-volume-up"></i><span>Speaker</span>
+          </button>
+          <button id="talk-btn-main" class="control-btn pulse" aria-label="Talk">
+            <i class="fas fa-microphone"></i><span>Talk</span>
+          </button>
+          <button class="control-btn" aria-label="Add call">
+            <i class="fas fa-plus"></i><span>Add Call</span>
+          </button>
+          <button class="hangup-btn main-hangup" aria-label="End Call">
+            <i class="fas fa-phone-slash"></i>
+          </button>
         </div>
       </div>
 
-      <!-- Voice Command -->
-      <div class="voice-section mb-3">
-        <button id="voiceButton" class="voice-button" onclick="toggleVoiceRecording()">
-          <i id="voiceIcon" class="bi bi-mic-fill"></i>
-        </button>
-        <p id="voiceLabel" class="mt-2 text-muted fw-semibold">Voice Command</p>
-        <div id="voiceStatus" class="voice-status small mt-1 text-secondary"></div>
+      <div id="keypad-screen" class="screen fade-in">
+        <div id="transcript" class="transcript"></div>
+        <div class="keypad">
+          <button class="key">1<span>Balance</span></button>
+          <button class="key">2<span>Agent</span></button>
+          <button class="key">3<span>Statement</span></button>
+          <button class="key">4<span>Lost Card</span></button>
+          <button class="key">5<span>Activate Card</span></button>
+          <button class="key">6<span>Pay Bill</span></button>
+          <button class="key">7<span>Update Info</span></button>
+          <button class="key">8<span>Loan/EMI</span></button>
+          <button class="key">9<span>Fraud Alert</span></button>
+          <button class="key">*</button>
+          <button class="key">0<span>E-Stmt</span></button>
+          <button class="key">#</button>
+        </div>
+        <div class="keypad-controls glass">
+          <button id="talk-btn-keypad" class="control-btn round pulse">
+            <i class="fas fa-microphone"></i><span>Talk</span>
+          </button>
+          <button class="hangup-btn round">
+            <i class="fas fa-phone-slash"></i>
+          </button>
+          <button class="control-btn round">
+            <i class="fas fa-microphone-slash"></i><span>Mute</span>
+          </button>
+        </div>
       </div>
-
-      <!-- Footer -->
-      <footer class="footer mt-4 small text-muted">
-        <i class="bi bi-hdd-network"></i> Backend: <b>localhost:3000</b> | Frontend: <b>IVR Dialpad</b>
-      </footer>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
